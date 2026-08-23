@@ -1,0 +1,40 @@
+<!doctype html><html><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Penguin Adventure</title>
+<style>
+*{box-sizing:border-box}body{margin:0;overflow:hidden;background:#9ee8ff;font-family:system-ui;color:#fff}
+canvas{display:block;width:100vw;height:100vh}
+#menu{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#071827dd}
+button{font-size:20px;font-weight:800;border:0;border-radius:14px;padding:14px 24px}
+#hud{position:fixed;top:12px;left:12px;right:12px;display:flex;gap:8px;align-items:center}
+.box{background:#111b2add;padding:7px 10px;border-radius:10px;font-weight:800}
+.bar{width:180px;height:20px;background:#4b1b24;border-radius:10px;overflow:hidden;border:2px solid white}.fill{height:100%;background:#29d34d}
+#controls{position:fixed;bottom:16px;left:0;right:0;display:flex;justify-content:space-between;padding:0 18px}
+button.ctrl{width:64px;height:64px;border-radius:50%;padding:0;background:#ffffffcc}
+</style></head><body>
+<canvas id="c"></canvas>
+<div id="hud"><div class="box">🐧 HP</div><div class="bar"><div id="hp" class="fill"></div></div><div id="hptext" class="box">100/100</div><div id="lvl" class="box">Level 1</div></div>
+<div id="controls"><div><button class="ctrl" id="l">◀</button><button class="ctrl" id="r">▶</button></div><div><button class="ctrl" id="j">⬆</button><button class="ctrl" id="p">👊</button></div></div>
+<div id="menu"><div style="font-size:80px">🐧</div><h1>Penguin Adventure</h1><button id="play">▶ Play</button><button id="safari">🌐 One-Tap Safari</button><div>Offline-friendly browser prototype</div></div>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d');let W,H;
+function size(){W=innerWidth;H=innerHeight;c.width=W;c.height=H}addEventListener('resize',size);size();
+let run=false,last=0,keys={},lvl=1,p={x:90,y:0,w:42,h:50,vx:0,vy:0,hp:100,punch:0},e;
+function newEnemy(){e={x:W-170,y:0,w:46,h:46,hp:120+lvl*10,max:120+lvl*10,dmg:8+lvl}}
+function start(){run=true;document.getElementById('menu').style.display='none';lvl=1;p.hp=100;p.x=90;newEnemy()}
+play.onclick=start;safari.onclick=()=>alert('You are already in the browser version. Use your browser menu to Add to Home Screen.');
+function bind(id,k){let b=document.getElementById(id);b.onpointerdown=()=>keys[k]=1;b.onpointerup=b.onpointercancel=()=>keys[k]=0}
+bind('l','left');bind('r','right');bind('j','jump');document.getElementById('p').onpointerdown=()=>p.punch=.18;
+addEventListener('keydown',a=>{keys[a.key]=1;if(a.key===' ')keys.jump=1});addEventListener('keyup',a=>{keys[a.key]=0;if(a.key===' ')keys.jump=0});
+function update(dt){if(!run)return;let d=(keys.right?1:0)-(keys.left?1:0);p.vx=d*260;p.vy+=900*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;let gy=H*.78-p.h;
+if(p.y>=gy){p.y=gy;p.vy=0}if(keys.jump&&p.y===gy){p.vy=-480;keys.jump=0}p.x=Math.max(0,Math.min(W-p.w,p.x));p.punch=Math.max(0,p.punch-dt);
+e.y=H*.78-e.h;e.x+=(p.x<e.x?-1:1)*45*dt;
+if(Math.abs(p.x-e.x)<48&&Math.abs(p.y-e.y)<48)p.hp-=e.dmg*dt;
+if(p.punch>0&&Math.abs(p.x-e.x)<80&&Math.abs(p.y-e.y)<55)e.hp-=700*dt;
+if(e.hp<=0){lvl++;newEnemy()}if(p.hp<=0){p.hp=100;lvl=1;newEnemy();alert('Game over — restarting Level 1')}
+hp.style.width=p.hp+'%';hptext.textContent=Math.ceil(p.hp)+'/100';document.getElementById('lvl').textContent='Level '+lvl}
+function draw(){x.clearRect(0,0,W,H);x.fillStyle='#9ee8ff';x.fillRect(0,0,W,H);x.fillStyle='#72b95a';x.fillRect(0,H*.78,W,H*.22);
+x.fillStyle='#171b25';x.beginPath();x.ellipse(p.x+21,p.y+25,22,27,0,0,7);x.fill();x.fillStyle='white';x.beginPath();x.ellipse(p.x+21,p.y+31,15,19,0,0,7);x.fill();x.fillStyle='#ff9d1c';x.beginPath();x.moveTo(p.x+39,p.y+22);x.lineTo(p.x+54,p.y+28);x.lineTo(p.x+39,p.y+34);x.fill();x.font='34px sans-serif';x.fillText('👾',e.x,e.y+35);
+x.fillStyle='#4b1b24';x.fillRect(e.x,e.y-10,e.w,6);x.fillStyle='#29d34d';x.fillRect(e.x,e.y-10,e.w*Math.max(0,e.hp/e.max),6)}
+function loop(t){let dt=Math.min(.033,(t-last)/1000||0);last=t;update(dt);draw();requestAnimationFrame(loop)}requestAnimationFrame(loop);
+</script></body></html>
