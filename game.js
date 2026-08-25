@@ -10,11 +10,7 @@
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 
-const canvas =
-    $("#gameCanvas") ||
-    $("#gameCanvas2") ||
-    document.querySelector("canvas");
-
+const canvas = document.getElementById("game");
 const ctx = canvas ? canvas.getContext("2d") : null;
 
 const menu = $("#menu");
